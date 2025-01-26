@@ -24,7 +24,7 @@ class AudioGraphWidget(QWidget):
         x_axis.setTitleText('Time')
 
         y_axis = QValueAxis()
-        y_axis.setRange(-1, 1)
+        y_axis.setRange(50, 350)
         y_axis.setTitleText('Audio level')
 
         self._chart.addAxis(x_axis, Qt.AlignmentFlag.AlignBottom)
@@ -48,6 +48,6 @@ class AudioGraphWidget(QWidget):
         self._series.clear()
         for x, y in enumerate(self._buffer):
             self._series.append(QPointF(x, y))
-        #x = list(self.buffer)
-        #y = [float(x) for x in range(len(self.buffer))]
-        #self._series.appendNp(x, y)
+        # x = list(self.buffer)
+        # y = [float(x) for x in range(len(self.buffer))]
+        # self._series.appendNp(x, y)
