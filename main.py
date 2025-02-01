@@ -21,10 +21,13 @@ class MainWindow(QMainWindow):
 
         self.settings = QSettings('test-organization', 'voice-overlay', parent=self)
 
+        self.settings_window = SettingsWindow(self.settings, self.pyaudio, parent=self)
+        self.settings_window.hide()
+
         self.settings_button = QToolButton()
         self.settings_button.setFixedSize(40, 40)
         self.settings_button.setIcon(QIcon('icons/settings.png'))
-        self.settings_button.pressed.connect(self._open_settings_window)
+        self.settings_button.pressed.connect(lambda: self.settings_window.show())
         horizontal_layout = QHBoxLayout()
         horizontal_layout.addStretch()
         horizontal_layout.addWidget(self.settings_button)
@@ -41,10 +44,6 @@ class MainWindow(QMainWindow):
 
         default_device = self.pyaudio.get_default_input_device_info()
         self.worker: Optional[PyAudioWorker] = self._create_and_start_worker(self.pyaudio, default_device)
-
-    def _open_settings_window(self):
-        settings = SettingsWindow(self.settings, self.pyaudio, parent=self)
-        settings.show()
 
     def _create_and_start_worker(self, audio: pyaudio.PyAudio, device: Mapping[str, Any]):
         worker = PyAudioWorker(audio, device, parent=self)
