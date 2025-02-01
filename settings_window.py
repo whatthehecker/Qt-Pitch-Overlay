@@ -1,6 +1,6 @@
 import pyaudio
 from PySide6.QtCore import QSettings, Signal
-from PySide6.QtWidgets import QComboBox, QDialog, QVBoxLayout
+from PySide6.QtWidgets import QComboBox, QDialog, QVBoxLayout, QCheckBox
 
 
 class SettingsWindow(QDialog):
@@ -21,9 +21,19 @@ class SettingsWindow(QDialog):
         self.device_selector.setCurrentText(default_device['name'])
         self.device_selector.currentIndexChanged.connect(self._on_device_changed)
 
+        self.allow_minimize_checkbox = QCheckBox('Minimize to tray instead of closing')
+        self.allow_minimize_checkbox.toggled.connect(self._on_allow_minimize_toggled)
+        allow_minimize_value = bool(self.settings.value('allowMinimizeToTray')) if self.settings.contains('allowMinimizeToTray') else False
+        self.allow_minimize_checkbox.setDown(allow_minimize_value)
+
         layout = QVBoxLayout()
         layout.addWidget(self.device_selector)
+        layout.addWidget(self.allow_minimize_checkbox)
         self.setLayout(layout)
+
+    def _on_allow_minimize_toggled(self, value: bool):
+        print(value)
+        self.settings.setValue('allowMinimizeToTray', value)
 
     def _on_device_changed(self, index: int):
         device_name = self.device_selector.itemText(index)
