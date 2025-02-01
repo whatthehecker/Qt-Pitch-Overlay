@@ -2,15 +2,12 @@ from collections import deque
 
 from PySide6.QtCharts import QChartView, QChart, QLineSeries, QValueAxis
 from PySide6.QtCore import Qt, QPointF
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QDial
+from PySide6.QtWidgets import QWidget, QVBoxLayout
 
 
-class AudioGraphWidget(QWidget):
+class AudioDisplayWidget(QWidget):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
-
-        layout = QVBoxLayout()
-        self._dial = QDial()
 
         self._chart = QChart()
         self._chart_view = QChartView(self._chart)
@@ -37,9 +34,8 @@ class AudioGraphWidget(QWidget):
 
         self._buffer: deque[float] = deque(maxlen=100)
 
-        layout.addWidget(self._dial)
+        layout = QVBoxLayout()
         layout.addWidget(self._chart_view)
-
         self.setLayout(layout)
 
     def add_value(self, value: float):

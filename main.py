@@ -2,10 +2,13 @@ import sys
 from typing import Mapping, Any, Optional
 
 import pyaudio
-from PySide6.QtWidgets import QApplication, QMainWindow, QComboBox, QVBoxLayout, QLabel, QWidget
+from PySide6.QtCore import QSettings
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLabel, QWidget, QToolButton, QHBoxLayout
 
-from audio_graph_widget import AudioGraphWidget
+from audio_display_widget import AudioDisplayWidget
 from audio_worker import PyAudioWorker
+from settings_window import SettingsWindow
 
 
 class MainWindow(QMainWindow):
@@ -14,28 +17,34 @@ class MainWindow(QMainWindow):
         self.pyaudio = pyaudio.PyAudio()
 
         self.setWindowTitle('Voice Training Overlay')
-
-        self.audio_box = QComboBox()
-        for device_info in self._get_valid_input_devices():
-            self.audio_box.addItem(device_info['name'], userData=device_info['index'])
-        default_device = self.pyaudio.get_default_input_device_info()
-        print(default_device)
-        self.audio_box.setCurrentText(default_device['name'])
-        self.audio_box.currentIndexChanged.connect(self._on_device_changed)
-
         self.volume_label = QLabel('<volume here>')
 
+        self.settings = QSettings('test-organization', 'voice-overlay', parent=self)
+
+        self.settings_button = QToolButton()
+        self.settings_button.setFixedSize(40, 40)
+        self.settings_button.setIcon(QIcon('icons/settings.png'))
+        self.settings_button.pressed.connect(self._open_settings_window)
+        horizontal_layout = QHBoxLayout()
+        horizontal_layout.addStretch()
+        horizontal_layout.addWidget(self.settings_button)
+
         layout = QVBoxLayout()
-        layout.addWidget(self.audio_box)
+        layout.addLayout(horizontal_layout)
         layout.addWidget(self.volume_label)
-        self._audio_graph = AudioGraphWidget()
+        self._audio_graph = AudioDisplayWidget()
         layout.addWidget(self._audio_graph)
 
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
 
+        default_device = self.pyaudio.get_default_input_device_info()
         self.worker: Optional[PyAudioWorker] = self._create_and_start_worker(self.pyaudio, default_device)
+
+    def _open_settings_window(self):
+        settings = SettingsWindow(self.settings, self.pyaudio, parent=self)
+        settings.show()
 
     def _create_and_start_worker(self, audio: pyaudio.PyAudio, device: Mapping[str, Any]):
         worker = PyAudioWorker(audio, device, parent=self)
@@ -49,25 +58,11 @@ class MainWindow(QMainWindow):
 
         self._audio_graph.add_value(max_value)
 
-    def _on_device_changed(self, index: int):
-        device_name = self.audio_box.itemText(index)
-        device_index = self.audio_box.itemData(index)
-        device = self.pyaudio.get_device_info_by_index(device_index)
-        print(device_name, device_index, device['maxInputChannels'])
-
+    def _on_device_changed(self, device: Mapping[str, Any]):
         if self.worker is not None:
             self.worker.stop()
 
         self.worker = self._create_and_start_worker(self.pyaudio, device)
-
-    def _get_valid_input_devices(self):
-        valid_input_devices = []
-        for i in range(self.pyaudio.get_device_count()):
-            device_info = self.pyaudio.get_device_info_by_index(i)
-            # Filter out non-input devices and virtual devices which have copious amounts of channels.
-            if 0 < device_info['maxInputChannels'] < 3:
-                valid_input_devices.append(device_info)
-        return valid_input_devices
 
 
 def main():
