@@ -34,7 +34,7 @@ class PyAudioWorker(QThread):
         max_index = np.argmax(confidence)
         max_confidence = confidence[max_index]
         frequency = frequency[max_index]
-        print(f'{frequency=} ({max_confidence=})')
+        #print(f'{frequency=} ({max_confidence=})')
 
         if max_confidence >= 0.5 and 50 < frequency < 350:
             self.audio_chunk_received.emit(frequency)

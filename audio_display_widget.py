@@ -2,7 +2,7 @@ from collections import deque
 
 from PySide6.QtCharts import QChartView, QChart, QLineSeries, QValueAxis
 from PySide6.QtCore import Qt, QPointF
-from PySide6.QtWidgets import QWidget, QVBoxLayout
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 
 
 class AudioDisplayWidget(QWidget):
@@ -38,12 +38,26 @@ class AudioDisplayWidget(QWidget):
         layout.addWidget(self._chart_view)
         self.setLayout(layout)
 
+        self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+
+        self.volume_label = QLabel('<volume here>', self)
+        self.volume_label.setStyleSheet('QLabel { background-color : red; color : blue; }')
+        #self.volume_label.setFixedSize(100, 20)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        # Move frequency label on top of chart:
+        self.volume_label.move(self._chart_view.geometry().center())
+
+
     def add_value(self, value: float):
         self._buffer.append(value)
 
         self._series.clear()
         for x, y in enumerate(self._buffer):
             self._series.append(QPointF(x, y))
+
+        self.volume_label.setText(f'{value:0.4f}')
         # x = list(self.buffer)
         # y = [float(x) for x in range(len(self.buffer))]
         # self._series.appendNp(x, y)
