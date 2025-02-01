@@ -23,7 +23,8 @@ class SettingsWindow(QDialog):
 
         self.allow_minimize_checkbox = QCheckBox('Minimize to tray instead of closing')
         self.allow_minimize_checkbox.toggled.connect(self._on_allow_minimize_toggled)
-        allow_minimize_value = bool(self.settings.value('allowMinimizeToTray')) if self.settings.contains('allowMinimizeToTray') else False
+        allow_minimize_value = self.settings.value('allowMinimizeToTray', False, bool) \
+            if self.settings.contains('allowMinimizeToTray') else False
         self.allow_minimize_checkbox.setDown(allow_minimize_value)
 
         layout = QVBoxLayout()
