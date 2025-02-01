@@ -1,6 +1,6 @@
 import pyaudio
 from PySide6.QtCore import QSettings, Signal
-from PySide6.QtWidgets import QComboBox, QDialog, QVBoxLayout, QCheckBox
+from PySide6.QtWidgets import QComboBox, QDialog, QVBoxLayout, QCheckBox, QSpinBox, QLabel
 
 
 class SettingsWindow(QDialog):
@@ -27,9 +27,32 @@ class SettingsWindow(QDialog):
             if self.settings.contains('allowMinimizeToTray') else False
         self.allow_minimize_checkbox.setDown(allow_minimize_value)
 
+        self.minimum_range_spinner = QSpinBox()
+        self.minimum_range_spinner.setValue(50)
+
+        self.maximum_range_spinner = QSpinBox()
+        self.maximum_range_spinner.setValue(350)
+
+        self.minimum_target_spinner = QSpinBox()
+        self.minimum_target_spinner.setValue(200)
+
+        self.maximum_target_spinner = QSpinBox()
+        self.maximum_target_spinner.setValue(250)
+
+        # TODO: connect signals for spinners to functionality
+        # TODO: ensure that min <= max whenever any of both is changed
+
         layout = QVBoxLayout()
         layout.addWidget(self.device_selector)
         layout.addWidget(self.allow_minimize_checkbox)
+        layout.addWidget(QLabel('Minimum frequency to display:'))
+        layout.addWidget(self.minimum_range_spinner)
+        layout.addWidget(QLabel('Maximum frequency to display:'))
+        layout.addWidget(self.maximum_range_spinner)
+        layout.addWidget(QLabel('Minimum frequency of target:'))
+        layout.addWidget(self.minimum_target_spinner)
+        layout.addWidget(QLabel('Maximum frequency of target:'))
+        layout.addWidget(self.maximum_target_spinner)
         self.setLayout(layout)
 
     def _on_allow_minimize_toggled(self, value: bool):
