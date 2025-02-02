@@ -1,4 +1,4 @@
-from typing import Mapping
+from typing import Mapping, Optional
 
 import crepe
 import tensorflow as tf
@@ -38,6 +38,8 @@ class AudioWorker(QThread):
         # TODO: use frequency bounds as set in settings instead of hardcoded ones
         if max_confidence >= 0.5 and 50 < frequency < 350:
             self.audio_chunk_received.emit(frequency)
+        else:
+            self.audio_chunk_received.emit(None)
 
         return None, (pyaudio.paContinue if self.running else pyaudio.paComplete)
 

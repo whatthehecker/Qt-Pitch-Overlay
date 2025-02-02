@@ -56,7 +56,8 @@ class AudioDisplayWidget(QWidget):
         for x, y in enumerate(self._buffer):
             self._series.append(QPointF(x, y))
 
-        self.volume_label.setText(f'{value:0.4f}')
+        if value > 0:
+            self.volume_label.setText(f'{value:0.4f}')
         # x = list(self.buffer)
         # y = [float(x) for x in range(len(self.buffer))]
         # self._series.appendNp(x, y)

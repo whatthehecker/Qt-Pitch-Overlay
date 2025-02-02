@@ -34,8 +34,8 @@ class MainWindow(QMainWindow):
 
         layout = QVBoxLayout()
         layout.addLayout(horizontal_layout)
-        self._audio_graph = AudioDisplayWidget()
-        layout.addWidget(self._audio_graph)
+        self._audio_display = AudioDisplayWidget()
+        layout.addWidget(self._audio_display)
 
         container = QWidget()
         container.setLayout(layout)
@@ -53,8 +53,11 @@ class MainWindow(QMainWindow):
 
         return worker
 
-    def _update_volume_label(self, max_value: float):
-        self._audio_graph.add_value(max_value)
+    def _update_volume_label(self, value: Optional[float]):
+        if value is None:
+            self._audio_display.add_value(0)
+        else:
+            self._audio_display.add_value(value)
 
     def _on_device_changed(self, device: AudioDevice):
         if self.worker is not None:
