@@ -1,5 +1,5 @@
 import sys
-from typing import Mapping, Any, Optional
+from typing import Optional
 
 import pyaudio
 from PySide6.QtGui import QIcon
@@ -7,21 +7,22 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLabel, QW
 
 from app_settings import AppSettings
 from audio_display_widget import AudioDisplayWidget
-from audio_worker import PyAudioWorker
+from audio_provider import AudioProvider, AudioDevice
+from audio_worker import AudioWorker
 from settings_window import SettingsWindow
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.pyaudio = pyaudio.PyAudio()
+        self._audio_provider = AudioProvider(pyaudio.PyAudio())
 
         self.setWindowTitle('Voice Training Overlay')
         self.volume_label = QLabel('<volume here>')
 
         self.app_settings = AppSettings(self)
 
-        self.settings_window = SettingsWindow(self.app_settings, self.pyaudio, parent=self)
+        self.settings_window = SettingsWindow(self.app_settings, self._audio_provider, parent=self)
         self.settings_window.hide()
 
         self.settings_button = QToolButton()
@@ -42,11 +43,13 @@ class MainWindow(QMainWindow):
         container.setLayout(layout)
         self.setCentralWidget(container)
 
-        default_device = self.pyaudio.get_default_input_device_info()
-        self.worker: Optional[PyAudioWorker] = self._create_and_start_worker(self.pyaudio, default_device)
+        self.worker: Optional[AudioWorker] = None
+        default_device = self._audio_provider.get_default_input_device()
+        if default_device is not None:
+            self.worker = self._create_and_start_worker(default_device)
 
-    def _create_and_start_worker(self, audio: pyaudio.PyAudio, device: Mapping[str, Any]):
-        worker = PyAudioWorker(audio, device, parent=self)
+    def _create_and_start_worker(self, device: AudioDevice):
+        worker = AudioWorker(self._audio_provider, device, parent=self)
         worker.audio_chunk_received.connect(self._update_volume_label)
         worker.start()
 
@@ -57,11 +60,11 @@ class MainWindow(QMainWindow):
 
         self._audio_graph.add_value(max_value)
 
-    def _on_device_changed(self, device: Mapping[str, Any]):
+    def _on_device_changed(self, device: AudioDevice):
         if self.worker is not None:
             self.worker.stop()
 
-        self.worker = self._create_and_start_worker(self.pyaudio, device)
+        self.worker = self._create_and_start_worker(device)
 
 
 def main():

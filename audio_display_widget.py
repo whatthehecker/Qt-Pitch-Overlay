@@ -49,7 +49,6 @@ class AudioDisplayWidget(QWidget):
         # Move frequency label on top of chart:
         self.volume_label.move(self._chart_view.geometry().center())
 
-
     def add_value(self, value: float):
         self._buffer.append(value)
 

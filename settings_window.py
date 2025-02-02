@@ -1,30 +1,33 @@
-import pyaudio
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QComboBox, QDialog, QVBoxLayout, QCheckBox, QSpinBox, QLabel
 
 from app_settings import AppSettings
+from audio_provider import AudioProvider, AudioDevice
 
 
 class SettingsWindow(QDialog):
-    audio_device_changed = Signal(object)
+    audio_device_changed = Signal(AudioDevice)
     minimum_range_changed = Signal(int)
     maximum_range_changed = Signal(int)
     minimum_target_changed = Signal(int)
     maximum_target_changed = Signal(int)
 
-    def __init__(self, app_settings: AppSettings, audio: pyaudio.PyAudio, parent=...):
+    def __init__(self, app_settings: AppSettings, audio_provider: AudioProvider, parent=...):
         super().__init__(parent)
         self.app_settings = app_settings
-        self.pyaudio = audio
+        self._audio_provider = audio_provider
 
         self.setWindowTitle('Settings')
 
         self.device_selector = QComboBox()
-        for device_info in self._get_valid_input_devices():
-            self.device_selector.addItem(device_info['name'], userData=device_info['index'])
-        default_device = self.pyaudio.get_default_input_device_info()
+        for device in self._audio_provider.get_valid_input_devices():
+            self.device_selector.addItem(device.name, userData=device.index)
+        default_device = self._audio_provider.get_default_input_device()
         print(default_device)
-        self.device_selector.setCurrentText(default_device['name'])
+        if default_device is None:
+            self.device_selector.setCurrentText('No devices found.')
+        else:
+            self.device_selector.setCurrentText(default_device.name)
         self.device_selector.currentIndexChanged.connect(self._on_device_changed)
 
         self.allow_minimize_checkbox = QCheckBox('Minimize to tray instead of closing')
@@ -85,18 +88,8 @@ class SettingsWindow(QDialog):
         self.maximum_target_changed.emit(value)
 
     def _on_device_changed(self, index: int):
-        device_name = self.device_selector.itemText(index)
         device_index = self.device_selector.itemData(index)
-        device = self.pyaudio.get_device_info_by_index(device_index)
-        print(device_name, device_index, device['maxInputChannels'])
+        device = self._audio_provider.get_device_by_index(device_index)
+        print(device)
 
         self.audio_device_changed.emit(device)
-
-    def _get_valid_input_devices(self):
-        valid_input_devices = []
-        for i in range(self.pyaudio.get_device_count()):
-            device_info = self.pyaudio.get_device_info_by_index(i)
-            # Filter out non-input devices and virtual devices which have copious amounts of channels.
-            if 0 < device_info['maxInputChannels'] < 3:
-                valid_input_devices.append(device_info)
-        return valid_input_devices
