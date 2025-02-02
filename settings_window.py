@@ -1,14 +1,20 @@
 import pyaudio
-from PySide6.QtCore import QSettings, Signal
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QComboBox, QDialog, QVBoxLayout, QCheckBox, QSpinBox, QLabel
+
+from app_settings import AppSettings
 
 
 class SettingsWindow(QDialog):
     audio_device_changed = Signal(object)
+    minimum_range_changed = Signal(int)
+    maximum_range_changed = Signal(int)
+    minimum_target_changed = Signal(int)
+    maximum_target_changed = Signal(int)
 
-    def __init__(self, settings: QSettings, audio: pyaudio.PyAudio, parent=...):
+    def __init__(self, app_settings: AppSettings, audio: pyaudio.PyAudio, parent=...):
         super().__init__(parent)
-        self.settings = settings
+        self.app_settings = app_settings
         self.pyaudio = audio
 
         self.setWindowTitle('Settings')
@@ -23,23 +29,27 @@ class SettingsWindow(QDialog):
 
         self.allow_minimize_checkbox = QCheckBox('Minimize to tray instead of closing')
         self.allow_minimize_checkbox.toggled.connect(self._on_allow_minimize_toggled)
-        allow_minimize_value = self.settings.value('allowMinimizeToTray', False, bool) \
-            if self.settings.contains('allowMinimizeToTray') else False
-        self.allow_minimize_checkbox.setDown(allow_minimize_value)
+        self.allow_minimize_checkbox.setChecked(self.app_settings.allow_minimize_to_tray)
 
         self.minimum_range_spinner = QSpinBox()
-        self.minimum_range_spinner.setValue(50)
+        self.minimum_range_spinner.setRange(20, 500)
+        self.minimum_range_spinner.setValue(self.app_settings.minimum_display_frequency)
+        self.minimum_range_spinner.valueChanged.connect(self._on_minimum_range_changed)
 
         self.maximum_range_spinner = QSpinBox()
-        self.maximum_range_spinner.setValue(350)
+        self.maximum_range_spinner.setRange(20, 500)
+        self.maximum_range_spinner.setValue(self.app_settings.maximum_display_frequency)
+        self.maximum_range_spinner.valueChanged.connect(self._on_maximum_range_changed)
 
         self.minimum_target_spinner = QSpinBox()
-        self.minimum_target_spinner.setValue(200)
+        self.minimum_target_spinner.setRange(20, 500)
+        self.minimum_target_spinner.setValue(self.app_settings.minimum_target_frequency)
+        self.minimum_target_spinner.valueChanged.connect(self._on_minimum_target_changed)
 
         self.maximum_target_spinner = QSpinBox()
-        self.maximum_target_spinner.setValue(250)
-
-        # TODO: connect signals for spinners to functionality
+        self.maximum_target_spinner.setRange(20, 500)
+        self.maximum_target_spinner.setValue(self.app_settings.maximum_target_frequency)
+        self.maximum_target_spinner.valueChanged.connect(self._on_maximum_target_changed)
         # TODO: ensure that min <= max whenever any of both is changed
 
         layout = QVBoxLayout()
@@ -56,8 +66,23 @@ class SettingsWindow(QDialog):
         self.setLayout(layout)
 
     def _on_allow_minimize_toggled(self, value: bool):
-        print(value)
-        self.settings.setValue('allowMinimizeToTray', value)
+        self.app_settings.allow_minimize_to_tray = value
+
+    def _on_minimum_range_changed(self, value: int):
+        self.app_settings.minimum_display_frequency = value
+        self.minimum_range_changed.emit(value)
+
+    def _on_maximum_range_changed(self, value: int):
+        self.app_settings.maximum_display_frequency = value
+        self.maximum_range_changed.emit(value)
+
+    def _on_minimum_target_changed(self, value: int):
+        self.app_settings.minimum_target_frequency = value
+        self.minimum_target_changed.emit(value)
+
+    def _on_maximum_target_changed(self, value: int):
+        self.app_settings.maximum_target_frequency = value
+        self.maximum_target_changed.emit(value)
 
     def _on_device_changed(self, index: int):
         device_name = self.device_selector.itemText(index)

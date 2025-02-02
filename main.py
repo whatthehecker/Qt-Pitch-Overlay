@@ -2,10 +2,10 @@ import sys
 from typing import Mapping, Any, Optional
 
 import pyaudio
-from PySide6.QtCore import QSettings
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLabel, QWidget, QToolButton, QHBoxLayout
 
+from app_settings import AppSettings
 from audio_display_widget import AudioDisplayWidget
 from audio_worker import PyAudioWorker
 from settings_window import SettingsWindow
@@ -19,9 +19,9 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('Voice Training Overlay')
         self.volume_label = QLabel('<volume here>')
 
-        self.settings = QSettings('test-organization', 'voice-overlay', parent=self)
+        self.app_settings = AppSettings(self)
 
-        self.settings_window = SettingsWindow(self.settings, self.pyaudio, parent=self)
+        self.settings_window = SettingsWindow(self.app_settings, self.pyaudio, parent=self)
         self.settings_window.hide()
 
         self.settings_button = QToolButton()
