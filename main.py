@@ -3,7 +3,7 @@ from typing import Optional
 
 import pyaudio
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLabel, QWidget, QToolButton, QHBoxLayout
+from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QToolButton, QHBoxLayout
 
 from app_settings import AppSettings
 from audio_display_widget import AudioDisplayWidget
@@ -18,7 +18,6 @@ class MainWindow(QMainWindow):
         self._audio_provider = AudioProvider(pyaudio.PyAudio())
 
         self.setWindowTitle('Voice Training Overlay')
-        self.volume_label = QLabel('<volume here>')
 
         self.app_settings = AppSettings(self)
 
@@ -35,7 +34,6 @@ class MainWindow(QMainWindow):
 
         layout = QVBoxLayout()
         layout.addLayout(horizontal_layout)
-        layout.addWidget(self.volume_label)
         self._audio_graph = AudioDisplayWidget()
         layout.addWidget(self._audio_graph)
 
@@ -56,8 +54,6 @@ class MainWindow(QMainWindow):
         return worker
 
     def _update_volume_label(self, max_value: float):
-        self.volume_label.setText(str(max_value))
-
         self._audio_graph.add_value(max_value)
 
     def _on_device_changed(self, device: AudioDevice):
