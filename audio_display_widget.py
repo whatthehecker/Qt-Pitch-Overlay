@@ -1,7 +1,8 @@
 from collections import deque
 
-from PySide6.QtCharts import QChartView, QChart, QLineSeries, QValueAxis
+from PySide6.QtCharts import QChartView, QChart, QLineSeries, QValueAxis, QCategoryAxis
 from PySide6.QtCore import Qt, QPointF
+from PySide6.QtGui import QBrush, QColor
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 
 
@@ -19,10 +20,16 @@ class AudioDisplayWidget(QWidget):
         x_axis.setLabelFormat('%g')
         x_axis.setRange(0, 100)
         x_axis.setTitleText('Time')
+        x_axis.setGridLineVisible(False)
 
-        y_axis = QValueAxis()
+        y_axis = QCategoryAxis()
+        y_axis.setLabelsPosition(QCategoryAxis.AxisLabelsPosition.AxisLabelsPositionOnValue)
         y_axis.setRange(50, 350)
         y_axis.setTitleText('Audio level')
+        y_axis.setShadesBrush((QBrush(QColor(245, 169, 184, 0x55))))
+        y_axis.setShadesVisible(True)
+        for value in [175, 250, 350]:
+            y_axis.append(str(value), value)
 
         self._chart.addAxis(x_axis, Qt.AlignmentFlag.AlignBottom)
         self._series.attachAxis(x_axis)

@@ -28,8 +28,7 @@ class AudioWorker(QThread):
             return
 
         data: np.ndarray = np.frombuffer(in_data, np.int16)
-        time, frequency, confidence, activation = crepe.predict(audio=data, sr=SAMPLE_RATE, verbose=False,
-                                                                step_size=100)
+        time, frequency, confidence, _ = crepe.predict(audio=data, sr=SAMPLE_RATE, verbose=False, step_size=100)
         max_index = np.argmax(confidence)
         max_confidence = confidence[max_index]
         frequency = frequency[max_index]
