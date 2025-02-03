@@ -53,11 +53,8 @@ class MainWindow(QMainWindow):
 
         return worker
 
-    def _update_volume_label(self, value: Optional[float]):
-        if value is None:
-            self._audio_display.add_value(0)
-        else:
-            self._audio_display.add_value(value)
+    def _update_volume_label(self, x: float, y: Optional[float]):
+        self._audio_display.add_value(x, y if y is not None else 0)
 
     def _on_device_changed(self, device: AudioDevice):
         if self.worker is not None:

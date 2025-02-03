@@ -17,29 +17,29 @@ class AudioDisplayWidget(QWidget):
         self._chart.addSeries(self._series)
 
         x_axis = QValueAxis()
-        x_axis.setLabelFormat('%g')
-        x_axis.setRange(0, 100)
-        x_axis.setTitleText('Time')
+        x_axis.setRange(0, 10)
         x_axis.setGridLineVisible(False)
+        x_axis.setLabelsVisible(False)
+
+        self._chart.addAxis(x_axis, Qt.AlignmentFlag.AlignBottom)
+        self._series.attachAxis(x_axis)
 
         y_axis = QCategoryAxis()
         y_axis.setLabelsPosition(QCategoryAxis.AxisLabelsPosition.AxisLabelsPositionOnValue)
         y_axis.setRange(50, 350)
-        y_axis.setTitleText('Audio level')
+        # Mark the pink target region by creating an axis with "checkered" regions and only show three levels,
+        # effectively creating only a single region with a pink backdrop.
         y_axis.setShadesBrush((QBrush(QColor(245, 169, 184, 0x55))))
         y_axis.setShadesVisible(True)
         for value in [175, 250, 350]:
-            y_axis.append(str(value), value)
-
-        self._chart.addAxis(x_axis, Qt.AlignmentFlag.AlignBottom)
-        self._series.attachAxis(x_axis)
+            y_axis.append(f'{value} Hz', value)
 
         self._chart.addAxis(y_axis, Qt.AlignmentFlag.AlignLeft)
         self._series.attachAxis(y_axis)
 
         self._chart.legend().hide()
 
-        self._buffer: deque[float] = deque(maxlen=100)
+        self._buffer: deque[QPointF] = deque(maxlen=100)
 
         layout = QVBoxLayout()
         layout.addWidget(self._chart_view)
@@ -56,15 +56,17 @@ class AudioDisplayWidget(QWidget):
         # Move frequency label on top of chart:
         self.volume_label.move(self._chart_view.geometry().center())
 
-    def add_value(self, value: float):
-        self._buffer.append(value)
+    def add_value(self, x: float, y: float):
+        self._buffer.append(QPointF(x, y))
 
         self._series.clear()
-        for x, y in enumerate(self._buffer):
-            self._series.append(QPointF(x, y))
+        for point in self._buffer:
+            self._series.append(point)
+        # Make X-axis always show last 10 seconds and the current value a bit from the right border.
+        self._chart.axisX().setRange(x - 10, x + 1)
 
-        if value > 0:
-            self.volume_label.setText(f'{value:0.4f}')
+        if y > 0:
+            self.volume_label.setText(f'{y:0.4f}')
         # x = list(self.buffer)
         # y = [float(x) for x in range(len(self.buffer))]
         # self._series.appendNp(x, y)
