@@ -7,10 +7,7 @@ from audio_provider import AudioProvider, AudioDevice
 
 class SettingsWindow(QDialog):
     audio_device_changed = Signal(AudioDevice)
-    minimum_range_changed = Signal(int)
-    maximum_range_changed = Signal(int)
-    minimum_target_changed = Signal(int)
-    maximum_target_changed = Signal(int)
+    frequencies_changed = Signal()
 
     def __init__(self, app_settings: AppSettings, audio_provider: AudioProvider, parent=...):
         super().__init__(parent)
@@ -34,38 +31,38 @@ class SettingsWindow(QDialog):
         self.allow_minimize_checkbox.toggled.connect(self._on_allow_minimize_toggled)
         self.allow_minimize_checkbox.setChecked(self.app_settings.allow_minimize_to_tray)
 
-        self.minimum_range_spinner = QSpinBox()
-        self.minimum_range_spinner.setRange(20, 500)
-        self.minimum_range_spinner.setValue(self.app_settings.minimum_display_frequency)
-        self.minimum_range_spinner.valueChanged.connect(self._on_minimum_range_changed)
+        self._minimum_range_spinner = QSpinBox()
+        self._minimum_range_spinner.setRange(20, 500)
+        self._minimum_range_spinner.setValue(self.app_settings.minimum_display_frequency)
+        self._minimum_range_spinner.valueChanged.connect(self._on_minimum_range_changed)
 
-        self.maximum_range_spinner = QSpinBox()
-        self.maximum_range_spinner.setRange(20, 500)
-        self.maximum_range_spinner.setValue(self.app_settings.maximum_display_frequency)
-        self.maximum_range_spinner.valueChanged.connect(self._on_maximum_range_changed)
+        self._maximum_range_spinner = QSpinBox()
+        self._maximum_range_spinner.setRange(20, 500)
+        self._maximum_range_spinner.setValue(self.app_settings.maximum_display_frequency)
+        self._maximum_range_spinner.valueChanged.connect(self._on_maximum_range_changed)
 
-        self.minimum_target_spinner = QSpinBox()
-        self.minimum_target_spinner.setRange(20, 500)
-        self.minimum_target_spinner.setValue(self.app_settings.minimum_target_frequency)
-        self.minimum_target_spinner.valueChanged.connect(self._on_minimum_target_changed)
+        self._minimum_target_spinner = QSpinBox()
+        self._minimum_target_spinner.setRange(20, 500)
+        self._minimum_target_spinner.setValue(self.app_settings.minimum_target_frequency)
+        self._minimum_target_spinner.valueChanged.connect(self._on_minimum_target_changed)
 
-        self.maximum_target_spinner = QSpinBox()
-        self.maximum_target_spinner.setRange(20, 500)
-        self.maximum_target_spinner.setValue(self.app_settings.maximum_target_frequency)
-        self.maximum_target_spinner.valueChanged.connect(self._on_maximum_target_changed)
+        self._maximum_target_spinner = QSpinBox()
+        self._maximum_target_spinner.setRange(20, 500)
+        self._maximum_target_spinner.setValue(self.app_settings.maximum_target_frequency)
+        self._maximum_target_spinner.valueChanged.connect(self._on_maximum_target_changed)
         # TODO: ensure that min <= max whenever any of both is changed
 
         layout = QVBoxLayout()
         layout.addWidget(self.device_selector)
         layout.addWidget(self.allow_minimize_checkbox)
         layout.addWidget(QLabel('Minimum frequency to display:'))
-        layout.addWidget(self.minimum_range_spinner)
+        layout.addWidget(self._minimum_range_spinner)
         layout.addWidget(QLabel('Maximum frequency to display:'))
-        layout.addWidget(self.maximum_range_spinner)
+        layout.addWidget(self._maximum_range_spinner)
         layout.addWidget(QLabel('Minimum frequency of target:'))
-        layout.addWidget(self.minimum_target_spinner)
+        layout.addWidget(self._minimum_target_spinner)
         layout.addWidget(QLabel('Maximum frequency of target:'))
-        layout.addWidget(self.maximum_target_spinner)
+        layout.addWidget(self._maximum_target_spinner)
         self.setLayout(layout)
 
     def _on_allow_minimize_toggled(self, value: bool):
@@ -73,19 +70,19 @@ class SettingsWindow(QDialog):
 
     def _on_minimum_range_changed(self, value: int):
         self.app_settings.minimum_display_frequency = value
-        self.minimum_range_changed.emit(value)
+        self.frequencies_changed.emit()
 
     def _on_maximum_range_changed(self, value: int):
         self.app_settings.maximum_display_frequency = value
-        self.maximum_range_changed.emit(value)
+        self.frequencies_changed.emit()
 
     def _on_minimum_target_changed(self, value: int):
         self.app_settings.minimum_target_frequency = value
-        self.minimum_target_changed.emit(value)
+        self.frequencies_changed.emit()
 
     def _on_maximum_target_changed(self, value: int):
         self.app_settings.maximum_target_frequency = value
-        self.maximum_target_changed.emit(value)
+        self.frequencies_changed.emit()
 
     def _on_device_changed(self, index: int):
         device_index = self.device_selector.itemData(index)

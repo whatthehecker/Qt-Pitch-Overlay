@@ -7,7 +7,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 
 
 class AudioDisplayWidget(QWidget):
-    def __init__(self, parent: QWidget | None = None):
+    def __init__(self, range_min: int, range_max: int, target_min: int, target_max: int, parent: QWidget | None = None):
         super().__init__(parent)
 
         self._chart = QChart()
@@ -24,19 +24,9 @@ class AudioDisplayWidget(QWidget):
         self._chart.addAxis(x_axis, Qt.AlignmentFlag.AlignBottom)
         self._series.attachAxis(x_axis)
 
-        y_axis = QCategoryAxis()
-        y_axis.setLabelsPosition(QCategoryAxis.AxisLabelsPosition.AxisLabelsPositionOnValue)
-        y_axis.setRange(50, 350)
-        # Mark the pink target region by creating an axis with "checkered" regions and only show three levels,
-        # effectively creating only a single region with a pink backdrop.
-        y_axis.setShadesBrush((QBrush(QColor(245, 169, 184, 0x55))))
-        y_axis.setShadesVisible(True)
-        for value in [175, 250, 350]:
-            y_axis.append(f'{value} Hz', value)
-
-        self._chart.addAxis(y_axis, Qt.AlignmentFlag.AlignLeft)
-        self._series.attachAxis(y_axis)
-
+        self.y_axis = self._create_y_axis(range_min, range_max, target_min, target_max)
+        self._chart.addAxis(self.y_axis, Qt.AlignmentFlag.AlignLeft)
+        self._series.attachAxis(self.y_axis)
         self._chart.legend().hide()
 
         self._buffer: deque[QPointF] = deque(maxlen=100)
@@ -50,6 +40,26 @@ class AudioDisplayWidget(QWidget):
         self.volume_label = QLabel('<volume here>', self)
         self.volume_label.setStyleSheet('QLabel { background-color : red; color : blue; }')
         #self.volume_label.setFixedSize(100, 20)
+
+    def _create_y_axis(self, range_min: int, range_max: int, target_min: int, target_max: int) -> QCategoryAxis:
+        y_axis = QCategoryAxis()
+        y_axis.setRange(range_min, range_max)
+        y_axis.setLabelsPosition(QCategoryAxis.AxisLabelsPosition.AxisLabelsPositionOnValue)
+        # Mark the pink target region by creating an axis with "checkered" regions and only show three levels,
+        # effectively creating only a single region with a pink backdrop.
+        y_axis.setShadesBrush((QBrush(QColor(245, 169, 184, 0x55))))
+        y_axis.setShadesVisible(True)
+        for value in [target_min, target_max]:
+            y_axis.append(f'{value} Hz', value)
+        return y_axis
+
+    def update_y_axis(self, range_min: int, range_max: int, target_min: int, target_max: int):
+        self._chart.removeAxis(self.y_axis)
+        #self._series.detachAxis(self.y_axis)
+
+        self.y_axis = self._create_y_axis(range_min, range_max, target_min, target_max)
+        self._chart.addAxis(self.y_axis, Qt.AlignmentFlag.AlignLeft)
+        self._series.attachAxis(self.y_axis)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

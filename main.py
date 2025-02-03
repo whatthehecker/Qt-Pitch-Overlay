@@ -22,6 +22,7 @@ class MainWindow(QMainWindow):
         self.app_settings = AppSettings(self)
 
         self.settings_window = SettingsWindow(self.app_settings, self._audio_provider, parent=self)
+        self.settings_window.frequencies_changed.connect(self._update_audio_widget)
         self.settings_window.hide()
 
         self.settings_button = QToolButton()
@@ -34,7 +35,12 @@ class MainWindow(QMainWindow):
 
         layout = QVBoxLayout()
         layout.addLayout(horizontal_layout)
-        self._audio_display = AudioDisplayWidget()
+        self._audio_display = AudioDisplayWidget(
+            range_min=self.app_settings.minimum_display_frequency,
+            range_max=self.app_settings.maximum_display_frequency,
+            target_min=self.app_settings.minimum_target_frequency,
+            target_max=self.app_settings.maximum_target_frequency,
+        )
         layout.addWidget(self._audio_display)
 
         container = QWidget()
@@ -45,6 +51,14 @@ class MainWindow(QMainWindow):
         default_device = self._audio_provider.get_default_input_device()
         if default_device is not None:
             self.worker = self._create_and_start_worker(default_device)
+
+    def _update_audio_widget(self):
+        self._audio_display.update_y_axis(
+            range_min=self.app_settings.minimum_display_frequency,
+            range_max=self.app_settings.maximum_display_frequency,
+            target_min=self.app_settings.minimum_target_frequency,
+            target_max=self.app_settings.maximum_target_frequency,
+        )
 
     def _create_and_start_worker(self, device: AudioDevice):
         worker = AudioWorker(self._audio_provider, device, parent=self)
