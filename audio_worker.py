@@ -1,5 +1,5 @@
 import time
-from typing import Mapping, Optional
+from typing import Mapping
 
 import crepe
 import tensorflow as tf
@@ -34,7 +34,6 @@ class AudioWorker(QThread):
         max_index = np.argmax(confidence)
         max_confidence = confidence[max_index]
         frequency = frequency[max_index]
-        # print(f'{frequency=} ({max_confidence=})')
 
         current_time = time.time() - self._start_time
         # TODO: use frequency bounds as set in settings instead of hardcoded ones

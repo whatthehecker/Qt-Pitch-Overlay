@@ -61,7 +61,15 @@ class AudioProvider:
         if self._stream is not None:
             self._stream.stop_stream()
 
-    def start_stream(self, device: AudioDevice, callback: AudioReceivedCallback):
+    def start_stream(self, device: AudioDevice, callback: AudioReceivedCallback, buffer_length_millis: int = 128):
+        """
+        Starts streaming audio from the given device.
+
+        :param device: The device to stream from.
+        :param callback: Callback that is called whenever enough samples have been buffered.
+        :param buffer_length_millis: Length of the buffer in milliseconds. Optimally should be a multiple of 64 which
+            is internally used by CREPE to determine pitch values.
+        """
         self.stop_stream()
 
         self.current_device = device
@@ -73,5 +81,5 @@ class AudioProvider:
             input=True,
             input_device_index=device.index,
             stream_callback=callback,
-            frames_per_buffer=AudioProvider.SAMPLE_RATE // 5
+            frames_per_buffer=int(AudioProvider.SAMPLE_RATE * (buffer_length_millis / 1000))
         )
