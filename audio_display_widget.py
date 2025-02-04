@@ -87,6 +87,7 @@ class AudioDisplayWidget(QWidget):
         self.volume_label.setFont(font)
 
     def add_value(self, x: float, y: float):
+        # TODO: if there's a gap (y <= 0) then store the current series and create a new one so that there can be gaps in the display
         self._buffer.append(QPointF(x, y))
 
         self._series.clear()

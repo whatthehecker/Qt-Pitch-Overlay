@@ -2,6 +2,7 @@ import sys
 from typing import Optional
 
 import pyaudio
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QToolButton, QHBoxLayout
 
@@ -28,8 +29,16 @@ class MainWindow(QMainWindow):
         self.settings_button = QToolButton()
         self.settings_button.setFixedSize(40, 40)
         self.settings_button.setIcon(QIcon('icons/settings.png'))
-        self.settings_button.pressed.connect(lambda: self.settings_window.show())
+        self.settings_button.clicked.connect(lambda: self.settings_window.show())
+
+        self.pin_button = QToolButton()
+        self.pin_button.setFixedSize(40, 40)
+        self.pin_button.setIcon(QIcon('icons/pin.png'))
+        self.pin_button.setCheckable(True)
+        self.pin_button.clicked.connect(self._on_pin_pressed)
+
         horizontal_layout = QHBoxLayout()
+        horizontal_layout.addWidget(self.pin_button)
         horizontal_layout.addStretch()
         horizontal_layout.addWidget(self.settings_button)
 
@@ -51,6 +60,16 @@ class MainWindow(QMainWindow):
         default_device = self._audio_provider.get_default_input_device()
         if default_device is not None:
             self.worker = self._create_and_start_worker(default_device)
+
+    def _on_pin_pressed(self, pressed: bool):
+        self.pin_button.setChecked(pressed)
+        if pressed:
+            new_flags = self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint
+        else:
+            new_flags = self.windowFlags() ^ Qt.WindowType.WindowStaysOnTopHint
+        self.setWindowFlags(new_flags)
+        # Updating flags means recreating the window, which means it needs to be shown again.
+        self.show()
 
     def _update_audio_widget(self):
         self._audio_display.update_y_axis(
