@@ -1,7 +1,7 @@
 from collections import deque
 
 from PySide6.QtCharts import QChartView, QChart, QLineSeries, QValueAxis, QCategoryAxis
-from PySide6.QtCore import Qt, QPointF, QPoint, QRect, QMargins
+from PySide6.QtCore import Qt, QPointF, QMargins
 from PySide6.QtGui import QBrush, QColor, QFontMetrics, QFont
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 
